@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from 'react'
 import { API_KEYS } from '../config/api'
 import axios from 'axios'
-import React from 'react'
 import NBACard from './NBACard'
 
 interface Game {
