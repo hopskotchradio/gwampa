@@ -1,7 +1,8 @@
-import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { API_KEYS } from '../config/api'
 import axios from 'axios'
 import React from 'react'
+import NBACard from './NBACard'
 
 interface Game {
   id: number
@@ -18,72 +19,44 @@ interface Game {
   startDateTime: Date
 }
 
-const GameItem = React.memo(({ game, showScores = false }: { game: Game, showScores?: boolean }) => {
-  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlZWVlZWUiLz48dGV4dCB4PSIyMCIgeT0iMjAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9IjUiPk5CQTwvdGV4dD48L3N2Zz4='
-  }, [])
+interface APIGameResponse {
+  id: number
+  date: {
+    start: string
+  }
+  status: {
+    short: number
+  }
+  teams: {
+    home: {
+      name: string
+      logo: string
+    }
+    visitors: {
+      name: string
+      logo: string
+    }
+  }
+  scores: {
+    home: {
+      points: number
+    }
+    visitors: {
+      points: number
+    }
+  }
+  arena: {
+    broadcast?: {
+      national?: string
+    }
+  }
+}
 
-  return (
-    <div className="list-group-item d-flex flex-row justify-content-between align-items-center">
-      {/* Away Team */}
-      <div className="d-flex flex-column align-items-center" style={{ width: '120px' }}>
-        <img 
-          src={game.awayTeamLogo} 
-          alt={game.awayTeam} 
-          className="team-logo mb-2"
-          style={{ 
-            width: '50px', 
-            height: '50px',
-            objectFit: 'contain',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '4px'
-          }}
-          onError={handleImageError}
-        />
-        <span className="fw-bold text-truncate" style={{ width: '100%', textAlign: 'center' }}>
-          {game.awayTeam}
-        </span>
-      </div>
-
-      {/* Center Content */}
-      <div className="d-flex flex-column align-items-center" style={{ minWidth: '80px' }}>
-        <span className="fs-4 mb-2">@</span>
-        {showScores && (
-          <span className="fw-bold fs-5">
-            {game.awayScore} - {game.homeScore}
-          </span>
-        )}
-        {!showScores && (
-          <>
-            <span className="badge bg-primary rounded-pill mb-1">{game.channel}</span>
-            <small className="text-muted">{game.date}</small>
-            <small className="text-muted">{game.startTime}</small>
-          </>
-        )}
-      </div>
-
-      {/* Home Team */}
-      <div className="d-flex flex-column align-items-center" style={{ width: '120px' }}>
-        <img 
-          src={game.homeTeamLogo} 
-          alt={game.homeTeam} 
-          className="team-logo mb-2"
-          style={{ 
-            width: '50px', 
-            height: '50px',
-            objectFit: 'contain',
-            backgroundColor: '#f8f9fa',
-            borderRadius: '4px'
-          }}
-          onError={handleImageError}
-        />
-        <span className="fw-bold text-truncate" style={{ width: '100%', textAlign: 'center' }}>
-          {game.homeTeam}
-        </span>
-      </div>
-    </div>
-  )
-})
+interface APIResponse {
+  data: {
+    response: APIGameResponse[]
+  }
+}
 
 const NBASchedule = () => {
   const [recentGames, setRecentGames] = useState<Game[]>([])
@@ -129,12 +102,12 @@ const NBASchedule = () => {
         })
       ])
 
-      const processGames = (response: any) => {
+      const processGames = (response: APIResponse) => {
         if (!response.data || !response.data.response) {
           return []
         }
 
-        return response.data.response.map((game: any) => ({
+        return response.data.response.map((game: APIGameResponse) => ({
           id: game.id,
           homeTeam: game.teams.home.name,
           awayTeam: game.teams.visitors.name,
@@ -193,21 +166,21 @@ const NBASchedule = () => {
   if (error) return <div className="alert alert-danger">{error}</div>
 
   return (
-    <div>
+    <div className="container">
       <div className="mb-4">
-        <h3 className="mb-3">Recent Games</h3>
-        <div className="list-group">
+        <h2 className="mb-3">Recent Games</h2>
+        <div className="d-flex flex-wrap justify-content-center" style={{ maxWidth: '800px', margin: '0 auto' }}>
           {recentGames.map(game => (
-            <GameItem key={game.id} game={game} showScores={true} />
+            <NBACard key={game.id} game={game} showScores={true} />
           ))}
         </div>
       </div>
       
       <div>
-        <h3 className="mb-3">Upcoming Games</h3>
-        <div className="list-group">
+        <h2 className="mb-3">Upcoming Games</h2>
+        <div className="d-flex flex-wrap justify-content-center" style={{ maxWidth: '800px', margin: '0 auto' }}>
           {upcomingGames.map(game => (
-            <GameItem key={game.id} game={game} />
+            <NBACard key={game.id} game={game} />
           ))}
         </div>
       </div>
