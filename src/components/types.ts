@@ -11,4 +11,6 @@ export interface Game {
   date: string
   status: number
   startDateTime: Date
+  currentPeriod?: number
+  clock?: string | null
 } 

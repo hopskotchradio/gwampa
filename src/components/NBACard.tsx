@@ -9,8 +9,27 @@ interface NBACardProps {
 
 const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
   const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIHZpZXdCb3g9IjAgMCA0MCA0MCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iNDAiIGhlaWdodD0iNDAiIGZpbGw9IiNlZWVlZWUiLz48dGV4dCB4PSIyMCIgeT0iMjAiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIxNCIgZmlsbD0iIzY2NiIgdGV4dC1hbmNob3I9Im1pZGRsZSIgZHk9IjUiPk5CQTwvdGV4dD48L3N2Zz4='
+    e.currentTarget.src = '/logos/default.png'
   }, [])
+
+  const getLogoPath = (teamName: string) => {
+    return `/logos/${teamName.toLowerCase().replace(/\s/g, '-')}.png`
+  }
+
+  const formatQuarter = (quarter: number) => {
+    switch (quarter) {
+      case 1:
+        return '1st Quarter'
+      case 2:
+        return '2nd Quarter'
+      case 3:
+        return '3rd Quarter'
+      case 4:
+        return '4th Quarter'
+      default:
+        return `${quarter}th Quarter`
+    }
+  }
 
   return (
     <div className="card mb-3" style={{ width: '600px', backgroundColor: '#333', color: 'white' }}>
@@ -26,7 +45,7 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
             margin: '0 auto 10px'
           }}>
             <img 
-              src={game.awayTeamLogo} 
+              src={getLogoPath(game.awayTeam)} 
               alt={game.awayTeam} 
               style={{ 
                 width: '100%',
@@ -36,17 +55,25 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
               onError={handleImageError}
             />
           </div>
-          <div className="text-white">{game.awayTeam}</div>
-          {showScores && <div className="text-info fs-4">{game.awayScore}</div>}
+          <div className="text-white" style={{ fontSize: '1.5rem' }}>{game.awayTeam}</div>
+          {showScores && game.status !== 1 && <div className="text-info" style={{ fontSize: '2rem' }}>{game.awayScore}</div>}
         </div>
 
-        {/* VS */}
+        {/* Game Info */}
         <div className="text-center mx-4">
-          <div className="fs-6">vs</div>
+          <div style={{ fontSize: '2rem' }}>vs</div>
+          {game.status === 3 ? (
+            <div className="text-muted" style={{ fontSize: '1.5rem' }}>Final</div>
+          ) : (
+            <>
+              {game.status === 2 && game.currentPeriod && <div className="text-muted" style={{ fontSize: '1.5rem' }}>{formatQuarter(game.currentPeriod)}</div>}
+              {game.status === 2 && game.clock && <div className="text-muted" style={{ fontSize: '1.5rem' }}>Time Left: {game.clock}</div>}
+            </>
+          )}
           {!showScores && (
             <>
-              <div className="text-muted small mt-2">{game.date}</div>
-              <div className="text-muted small">{game.startTime}</div>
+              <div className="text-muted mt-2" style={{ fontSize: '1.5rem' }}>{game.date}</div>
+              <div className="text-muted" style={{ fontSize: '1.5rem' }}>{game.startTime}</div>
             </>
           )}
         </div>
@@ -62,7 +89,7 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
             margin: '0 auto 10px'
           }}>
             <img 
-              src={game.homeTeamLogo} 
+              src={getLogoPath(game.homeTeam)} 
               alt={game.homeTeam} 
               style={{ 
                 width: '100%',
@@ -72,8 +99,8 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
               onError={handleImageError}
             />
           </div>
-          <div className="text-white">{game.homeTeam}</div>
-          {showScores && <div className="text-info fs-4">{game.homeScore}</div>}
+          <div className="text-white" style={{ fontSize: '1.5rem' }}>{game.homeTeam}</div>
+          {showScores && game.status !== 1 && <div className="text-info" style={{ fontSize: '2rem' }}>{game.homeScore}</div>}
         </div>
       </div>
     </div>

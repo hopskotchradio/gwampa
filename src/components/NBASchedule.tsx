@@ -16,6 +16,8 @@ interface Game {
   date: string
   status: number
   startDateTime: Date
+  clock?: string | null
+  currentPeriod?: number
 }
 
 interface APIGameResponse {
@@ -25,6 +27,7 @@ interface APIGameResponse {
   }
   status: {
     short: number
+    clock?: string | null
   }
   teams: {
     home: {
@@ -49,6 +52,9 @@ interface APIGameResponse {
       national?: string
     }
   }
+  periods: {
+    current: number
+  }
 }
 
 interface APIResponse {
@@ -60,6 +66,7 @@ interface APIResponse {
 const NBASchedule = () => {
   const [recentGames, setRecentGames] = useState<Game[]>([])
   const [upcomingGames, setUpcomingGames] = useState<Game[]>([])
+  const [inProgressGames, setInProgressGames] = useState<Game[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const isFetching = useRef<boolean>(false)
@@ -126,7 +133,9 @@ const NBASchedule = () => {
           homeScore: game.scores?.home?.points,
           awayScore: game.scores?.visitors?.points,
           status: game.status.short,
-          startDateTime: new Date(game.date.start)
+          startDateTime: new Date(game.date.start),
+          clock: game.status.clock || null,
+          currentPeriod: game.periods.current || 0,
         }))
       }
 
@@ -139,14 +148,17 @@ const NBASchedule = () => {
         .slice(0, 5)
 
       const upcoming = [
-        ...todayGames.filter((game: Game) => game.status === 1),
-        ...nextWeekGames.filter((game: Game) => game.status === 1)
+        ...todayGames.filter((game: Game) => game.startDateTime > new Date()),
+        ...nextWeekGames.filter((game: Game) => game.startDateTime > new Date())
       ]
         .sort((a: Game, b: Game) => a.startDateTime.getTime() - b.startDateTime.getTime())
         .slice(0, 5)
 
+      const inProgress = todayGames.filter((game: Game) => game.status === 2)
+
       setRecentGames(recent)
       setUpcomingGames(upcoming)
+      setInProgressGames(inProgress)
       setLoading(false)
     } catch (err) {
       console.error('Detailed error:', err)
@@ -165,19 +177,32 @@ const NBASchedule = () => {
   if (error) return <div className="alert alert-danger">{error}</div>
 
   return (
-    <div className="container">
-      <div className="mb-4">
-        <h2 className="mb-3">Recent Games</h2>
-        <div className="d-flex flex-wrap justify-content-center" style={{ maxWidth: '800px', margin: '0 auto' }}>
+    <div className="container d-flex flex-column">
+      <div className="mb-4" style={{ flex: 1 }}>
+        <h1 className="mb-3">Live</h1>
+        <div className="d-flex flex-wrap justify-content-center">
+          {inProgressGames.length === 0 ? (
+            <div className="text-center text-muted" style={{ fontSize: '1.5rem' }}>There are currently no Live games being played, check back later</div>
+          ) : (
+            inProgressGames.map(game => (
+              <NBACard key={game.id} game={game as Game} showScores={true} />
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="mb-4" style={{ flex: 1 }}>
+        <h1 className="mb-3">Recently Played</h1>
+        <div className="d-flex flex-wrap justify-content-center">
           {recentGames.map(game => (
             <NBACard key={game.id} game={game} showScores={true} />
           ))}
         </div>
       </div>
       
-      <div>
-        <h2 className="mb-3">Upcoming Games</h2>
-        <div className="d-flex flex-wrap justify-content-center" style={{ maxWidth: '800px', margin: '0 auto' }}>
+      <div className="mb-4" style={{ flex: 1 }}>
+        <h1 className="mb-3">Upcoming Games</h1>
+        <div className="d-flex flex-wrap justify-content-center">
           {upcomingGames.map(game => (
             <NBACard key={game.id} game={game} />
           ))}
