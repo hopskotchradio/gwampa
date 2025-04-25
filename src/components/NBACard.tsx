@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React from 'react'
 import { Game } from './types'
 
 
@@ -8,10 +8,6 @@ interface NBACardProps {
 }
 
 const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
-  const handleImageError = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    e.currentTarget.src = '/logos/default.png'
-  }, [])
-
   const getLogoPath = (teamName: string) => {
     return `/logos/${teamName.toLowerCase().replace(/\s/g, '-')}.png`
   }
@@ -52,7 +48,6 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
                 height: '100%',
                 objectFit: 'contain'
               }}
-              onError={handleImageError}
             />
           </div>
           <div className="text-white" style={{ fontSize: '1.5rem' }}>{game.awayTeam}</div>
@@ -96,7 +91,6 @@ const NBACard: React.FC<NBACardProps> = ({ game, showScores = false }) => {
                 height: '100%',
                 objectFit: 'contain'
               }}
-              onError={handleImageError}
             />
           </div>
           <div className="text-white" style={{ fontSize: '1.5rem' }}>{game.homeTeam}</div>
